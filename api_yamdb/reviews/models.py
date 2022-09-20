@@ -1,5 +1,25 @@
 from django.db import models
-#from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
+
+
+CHOICES = (
+    ('user', 'аутентифицированный пользователь'),
+    ('moderator', 'модератор'),
+    ('admin', 'администратор'),
+)
+
+
+class CustomUser(AbstractUser):
+    user_role = models.CharField(
+        max_length=15,
+        choices=CHOICES,
+        default='user'
+    )
+    is_superuser_Django = models.BooleanField(default=False)
+
+
+User = get_user_model()
 
 
 class Categories(models.Model):
@@ -9,12 +29,14 @@ class Categories(models.Model):
     def __str__(self):
         return self.title
 
+
 class Genres(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
 
     def __str__(self):
         return self.title
+
 
 class Titles(models.Model):
     name = models.CharField(max_length=200)
