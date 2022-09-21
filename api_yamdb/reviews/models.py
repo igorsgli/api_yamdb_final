@@ -11,12 +11,12 @@ CHOICES = (
 
 
 class CustomUser(AbstractUser):
-    user_role = models.CharField(
+    bio = models.TextField(blank=True)
+    role = models.CharField(
         max_length=15,
         choices=CHOICES,
         default='user'
     )
-    is_superuser_Django = models.BooleanField(default=False)
 
 
 User = get_user_model()
