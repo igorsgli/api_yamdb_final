@@ -39,8 +39,8 @@ class Review(models.Model):
 class Comment(models.Model):
     text = models.TextField()
     author = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.CASCADE, 
+        CustomUser,
+        on_delete=models.CASCADE,
         related_name='comments',
         help_text="Автор"
     )
@@ -86,11 +86,11 @@ class Title(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name='titles'
+        related_name='categories'
     )
     review = models.ForeignKey(
         Review,
-        on_delete=models.SET_NULL, 
+        on_delete=models.SET_NULL,
         blank=True,
         null=True,
         related_name='reviews',
