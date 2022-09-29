@@ -92,16 +92,8 @@ class Title(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        related_name='titles'
+        related_name='categories'
     )
-    # review = models.ForeignKey(
-    #     Review,
-    #     on_delete=models.SET_NULL,
-    #     blank=True,
-    #     null=True,
-    #     related_name='reviews',
-    #     verbose_name="Обзор",
-    # )
 
     def __str__(self):
         return self.title
@@ -121,9 +113,7 @@ class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
-        blank=True,
-        null=True,
+        related_name='reviews'
     )
     author = models.ForeignKey(
         CustomUser,
