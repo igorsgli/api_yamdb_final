@@ -22,8 +22,11 @@ v1_router.register(
 )
 
 
+from .views import SignupView
+
 urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('v1/', include(v1_router.urls)),
+    path('v1/auth/signup/', SignupView.as_view(), name='signup'),    
 ]

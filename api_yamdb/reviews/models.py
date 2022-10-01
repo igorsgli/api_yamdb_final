@@ -11,6 +11,9 @@ CHOICES = (
 )
 
 
+User = get_user_model()
+
+
 class CustomUser(AbstractUser):
     password = models.CharField(
         max_length=100,
@@ -42,19 +45,8 @@ class CustomUser(AbstractUser):
         choices=CHOICES,
         default='user'
     )
-    confirmation_code = models.CharField(
-        max_length=555,
-        blank=True,
-        null=True
-    )
-    token = models.CharField(
-        max_length=555,
-        blank=True,
-        null=True,
-    )
-
-
-User = get_user_model()
+    confirmation_code = models.CharField(max_length=555, blank=True, null=True)
+    token = models.CharField(max_length=555, blank=True)
 
 
 class Category(models.Model):
