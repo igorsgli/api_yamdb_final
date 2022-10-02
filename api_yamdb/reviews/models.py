@@ -2,7 +2,6 @@ from datetime import datetime
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
 
 
 CHOICES = (
@@ -13,12 +12,29 @@ CHOICES = (
 
 
 class CustomUser(AbstractUser):
-    password = models.CharField(max_length=100, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    password = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+    )
+    is_active = models.BooleanField(
+        blank=True,
+        null=True,
+        default=True)
+    is_staff = models.BooleanField(
+        blank=True,
+        null=True,
+        default=False
+    )
+    is_superuser = models.BooleanField(
+        blank=True,
+        null=True,
+        default=False
+    )
     date_joined = models.DateTimeField(
-        default=datetime.now(tz=timezone.utc), blank=True
+        default=datetime.now,
+        blank=True,
+        null=True
     )
     bio = models.TextField(blank=True)
     role = models.CharField(
@@ -26,7 +42,7 @@ class CustomUser(AbstractUser):
         choices=CHOICES,
         default='user'
     )
-    confirmation_code = models.CharField(max_length=555, blank=True)
+    confirmation_code = models.CharField(max_length=555, blank=True, null=True)
 
 
 User = get_user_model()
