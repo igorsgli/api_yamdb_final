@@ -4,9 +4,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title, UserToken
 
 User = get_user_model()
+
 
 class SignupSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
@@ -24,14 +25,9 @@ class SignupSerializer(serializers.ModelSerializer):
         email = data.get('email', '')
         username = data.get('username', '')
 
-        if not username.isalnum():
-            raise serializers.ValidationError(
-                'Username должен состоять из буквенно-цифровых символов.'
-            )
-        
         if username == 'me':
             raise serializers.ValidationError(
-                 'Использовать имя <me> в качестве username запрещено.'
+                'Использовать имя <me> в качестве username запрещено.'
             )
 
         if User.objects.filter(email=email).count() > 0:
@@ -43,6 +39,50 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+
+class TokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(write_only=True, required=True)
+    confirmation_code = serializers.CharField(write_only=True, required=True)
+    token = serializers.CharField(required=False)
+
+    class Meta:
+        model = UserToken
+        fields = ('token', 'username', 'confirmation_code')
+
+    def validate(self, data):
+        username = data.get('username', None)
+        confirmation_code = data.get('confirmation_code', None)
+
+        if username is None:
+            raise serializers.ValidationError(
+                'Требуется ввести username.'
+            )
+
+        if confirmation_code is None:
+            raise serializers.ValidationError(
+                'Требуется ввести confirmation_code.'
+            )
+
+        user = get_object_or_404(User, username=username)
+
+        if user.confirmation_code != confirmation_code:
+            raise serializers.ValidationError(
+                'Неправильный confirmation code.'
+            )
+
+        return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            'username', 'email', 'role',
+            'first_name', 'last_name', 'bio',
+        )
+
 
 class CategorySerializer(serializers.ModelSerializer):
 

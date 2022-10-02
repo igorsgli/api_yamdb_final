@@ -6,7 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework import generics, status
+from rest_framework import generics
+from rest_framework import filters, permissions
 from rest_framework.response import Response
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,7 +15,9 @@ from rest_framework import viewsets
 from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly
 )
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from reviews.models import Category, Genre, Title, Review, Comment
 from api.permissions import IsAdmin, IsAdminOrAuthorOrReadOnly, IsAuthorOrReadOnly
@@ -25,7 +28,9 @@ from api.serializers import (
     TitleSlugSerializer,
     TitleGeneralSerializer,
     CommetSerializer,
-    SignupSerializer
+    SignupSerializer,
+    TokenSerializer,
+    UserSerializer,
 )
 
 
@@ -40,9 +45,12 @@ def get_confirmation_code(length):
 class SignupView(generics.GenericAPIView):
 
     serializer_class = SignupSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        confirmation_code = get_confirmation_code(settings.CONFIRMATION_CODE_LENGTH)
+        confirmation_code = get_confirmation_code(
+            settings.CONFIRMATION_CODE_LENGTH
+        )
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
@@ -56,7 +64,38 @@ class SignupView(generics.GenericAPIView):
             fail_silently=False,
         )
 
-        return Response(user_data, status=status.HTTP_201_CREATED)
+        return Response(user_data, status=status.HTTP_200_OK)
+
+
+class TokenView(generics.GenericAPIView):
+
+    serializer_class = TokenSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.get(username=request.data['username'])
+        token_value = RefreshToken.for_user(user).access_token
+        serializer.save(token=token_value)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UsersViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'username'
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = PageNumberPagination
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_object(self):
+        if self.kwargs['username'] == 'me':
+            return self.request.user
+        return super().get_object()
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
