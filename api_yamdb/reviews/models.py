@@ -121,6 +121,13 @@ class Review(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'], name='unique_title_author'
+            )
+        ]
+
 
 class Comment(models.Model):
     text = models.TextField()
