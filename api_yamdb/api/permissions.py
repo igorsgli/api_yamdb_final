@@ -10,6 +10,15 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
                 or obj.author == request.user)
 
 
+class GeneralPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return bool(request.user.is_authenticated and
+                    (request.user.is_staff or
+                     request.user.role == 'admin') or
+                    request.method in permissions.SAFE_METHODS)
+
+
 class IsAdminOrAuthorOrReadOnly(permissions.BasePermission):
 
     message = 'Вы должны быть администратором или автором!'

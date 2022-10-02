@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, permissions, serializers,
                             status, viewsets)
 from rest_framework.pagination import (LimitOffsetPagination,
@@ -17,12 +18,14 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 from api.permissions import (IsAdmin, IsAdminOrAuthorOrReadOnly,
                              IsAdminOrModeratorOrAuthorOrReadOnly,
-                             IsAuthorOrReadOnly)
+                             IsAuthorOrReadOnly,
+                             GeneralPermission)
 from api.serializers import (CategorySerializer, CommetSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignupSerializer, TitleGeneralSerializer,
                              TitleSlugSerializer, TokenSerializer,
                              UserSerializer)
+from api.filters import ModelFilter
 
 User = get_user_model()
 
@@ -79,7 +82,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     pagination_class = PageNumberPagination
-    permission_classes = [permissions.IsAdminUser]
+    #permission_classes = [permissions.IsAdminUser]
 
     def get_object(self):
         if self.kwargs['username'] == 'me':
@@ -90,8 +93,11 @@ class UsersViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdmin]
+    permission_classes = [GeneralPermission]
     http_method_names = ['get', 'post']
+    lookup_field = 'slug'
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -103,8 +109,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdmin]
+    permission_classes = [GeneralPermission]
     http_method_names = ['get', 'post']
+    lookup_field = 'slug'
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
 
     def retrieve(self, request, *args, **kwargs):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -114,7 +123,9 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAdminOrAuthorOrReadOnly]
+    permission_classes = [GeneralPermission]
+    filter_backends = [DjangoFilterBackend]
+    filter_class = ModelFilter
 
     def get_serializer_class(self):
         if self.action in ('create', 'partial_update'):
