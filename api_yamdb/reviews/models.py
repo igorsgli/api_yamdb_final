@@ -87,7 +87,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField(help_text="Текст обзора")
+    text = models.TextField(help_text='Текст обзора')
     score = models.IntegerField()
     title = models.ForeignKey(
         Title,
@@ -118,7 +118,7 @@ class Comment(models.Model):
         CustomUser,
         on_delete=models.CASCADE,
         related_name='comments',
-        help_text="Автор"
+        help_text='Автор'
     )
     pub_date = models.DateField(
         'Дата публикации комментария', auto_now_add=True
@@ -126,5 +126,5 @@ class Comment(models.Model):
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE,
         related_name='comments',
-        help_text="Обзор",
+        help_text='Обзор',
     )

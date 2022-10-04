@@ -51,12 +51,28 @@ GET /api/v1/titles/
 
 [
     {
-        "id": 0,
-        "author": "string",
-        "text": "string",
-        "pub_date": "2021-10-14T20:41:29.648Z",
-        "image": "string",
-        "group": 0
+        "count": 0,
+        "next": "string",
+        "previous": "string",
+        "results": [
+        {
+            "id": 0,
+            "name": "string",
+            "year": 0,
+            "rating": 0,
+            "description": "string",
+            "genre": [
+                {
+                    "name": "string",
+                    "slug": "string"
+                }
+            ],
+            "category": {
+                    "name": "string",
+                    "slug": "string"
+                }
+            }
+        ]
     }
 ]
 ```
@@ -65,9 +81,11 @@ GET /api/v1/titles/
 2. Создание публикации
 
 ```
+
 ```
 
 ```
+
 ```
 
 Более подробнее можно ознакомиться в документации: /static/redoc.yaml

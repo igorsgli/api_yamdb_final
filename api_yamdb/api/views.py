@@ -11,15 +11,12 @@ from rest_framework import (filters, generics, permissions, serializers,
                             status, viewsets)
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Review, Title
 
-from api.permissions import (IsAdmin, IsAdminOrAuthorOrReadOnly,
-                             IsAdminOrModeratorOrAuthorOrReadOnly,
-                             IsAuthorOrReadOnly, AdminOnly, UserOnly,
-                             GeneralPermission)
+from api.permissions import (IsAdminOrModeratorOrAuthorOrReadOnly,
+                             AdminOnly, GeneralPermission)
 from api.serializers import (CategorySerializer, CommetSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignupSerializer, TitleGeneralSerializer,
@@ -79,7 +76,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (AdminOnly,)
+    permission_classes = (AdminOnly, )
     search_fields = ('username',)
     lookup_field = 'username'
 
@@ -93,7 +90,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             self.action in ('retrieve', 'partial_update', 'destroy')
             and self.kwargs['username'] == 'me'
         ):
-            return (UserOnly(),)
+            return (permissions.IsAuthenticated(),)
         return super().get_permissions()
 
     def perform_update(self, serializer):
@@ -111,7 +108,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [GeneralPermission]
-    http_method_names = ['get', 'post']
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ('name',)
@@ -127,7 +123,6 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [GeneralPermission]
-    http_method_names = ['get', 'post']
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ('name',)
@@ -156,6 +151,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrModeratorOrAuthorOrReadOnly
     ]
     pagination_class = LimitOffsetPagination
@@ -183,7 +179,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommetSerializer
-    permission_classes = [IsAdminOrModeratorOrAuthorOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAdminOrModeratorOrAuthorOrReadOnly
+    ]
     pagination_class = LimitOffsetPagination
 
     def get_review(self):

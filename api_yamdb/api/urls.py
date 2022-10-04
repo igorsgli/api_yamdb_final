@@ -1,10 +1,10 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import (TokenObtainPairView,
-                                            TokenRefreshView)
 
 from .views import (CategoryViewSet, CommentViewSet, GenreViewSet,
-                    ReviewViewSet, TitleViewSet, UsersViewSet)
+                    ReviewViewSet, TitleViewSet, UsersViewSet,
+                    SignupView, TokenView)
+
 
 v1_router = DefaultRouter()
 v1_router.register('categories', CategoryViewSet, basename='categories')
@@ -22,8 +22,6 @@ v1_router.register(
 )
 v1_router.register('users', UsersViewSet, basename='users')
 
-
-from .views import SignupView, TokenView
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
