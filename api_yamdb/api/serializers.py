@@ -75,6 +75,9 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        max_length=None, min_length=None, allow_blank=False, required=True
+    )
 
     class Meta:
         model = User
@@ -82,6 +85,16 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'role',
             'first_name', 'last_name', 'bio',
         )
+
+    def validate(self, data):
+        email = data.get('email', '')
+
+        if User.objects.filter(email=email).count() > 0:
+            raise serializers.ValidationError(
+                'User с таким email уже существует.'
+            )
+
+        return data
 
 
 class CategorySerializer(serializers.ModelSerializer):

@@ -18,7 +18,7 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 from api.permissions import (IsAdmin, IsAdminOrAuthorOrReadOnly,
                              IsAdminOrModeratorOrAuthorOrReadOnly,
-                             IsAuthorOrReadOnly,
+                             IsAuthorOrReadOnly, AdminOnly, UserOnly,
                              GeneralPermission)
 from api.serializers import (CategorySerializer, CommetSerializer,
                              GenreSerializer, ReviewSerializer,
@@ -78,16 +78,33 @@ class TokenView(generics.GenericAPIView):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_field = 'username'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)
     pagination_class = PageNumberPagination
-    #permission_classes = [permissions.IsAdminUser]
+    permission_classes = (AdminOnly,)
+    search_fields = ('username',)
+    lookup_field = 'username'
 
     def get_object(self):
         if self.kwargs['username'] == 'me':
             return self.request.user
         return super().get_object()
+
+    def get_permissions(self):
+        if (
+            self.action in ('retrieve', 'partial_update', 'destroy')
+            and self.kwargs['username'] == 'me'
+        ):
+            return (UserOnly(),)
+        return super().get_permissions()
+
+    def perform_update(self, serializer):
+        if self.request.user.role == 'user':
+            return serializer.save(role='user')
+        return super().perform_update(serializer)
+
+    def destroy(self, request, *args, **kwargs):
+        if self.kwargs['username'] == 'me':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().destroy(request, *args, **kwargs)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
