@@ -162,7 +162,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsAdminOrModeratorOrAuthorOrReadOnly
     ]
     pagination_class = LimitOffsetPagination
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_title(self):
         title_id = self.kwargs['title_id']
@@ -174,13 +173,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = self.get_title()
-        if Review.objects.filter(
-            author=self.request.user, title=title
-        ).exists():
-            raise serializers.ValidationError(
-                'Для одного произведения можно оставить только один отзыв!'
-            )
-
         serializer.save(author=self.request.user, title=title)
 
 
