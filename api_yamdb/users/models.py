@@ -30,11 +30,14 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
 
-
     @property
     def is_admin(self):
         return self.role == 'admin'
-    
+
     @property
     def is_user(self):
         return self.role == 'user'
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'

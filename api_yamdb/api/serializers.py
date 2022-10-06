@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from requests import request
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, UserToken
 
@@ -20,23 +19,20 @@ class SignupSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'confirmation_code')
 
     def validate(self, data):
-        email = data.get('email', '')
-        username = data.get('username', '')
+        email = data.get('email')
+        username = data.get('username')
 
         if username == 'me':
             raise serializers.ValidationError(
                 'Использовать имя <me> в качестве username запрещено.'
             )
 
-        if User.objects.filter(email=email).count() > 0:
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
                 'User с таким email уже существует.'
             )
 
         return data
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -52,8 +48,8 @@ class TokenSerializer(serializers.ModelSerializer):
         fields = ('token', 'username', 'confirmation_code')
 
     def validate(self, data):
-        username = data.get('username', None)
-        confirmation_code = data.get('confirmation_code', None)
+        username = data.get('username')
+        confirmation_code = data.get('confirmation_code')
 
         if username is None:
             raise serializers.ValidationError(
@@ -90,7 +86,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         email = data.get('email', '')
 
-        if User.objects.filter(email=email).count() > 0:
+        if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
                 'User с таким email уже существует.'
             )

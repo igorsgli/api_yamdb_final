@@ -14,9 +14,10 @@ class GeneralPermission(permissions.BasePermission):
 
 class IsAdminOrModeratorOrAuthorOrReadOnly(permissions.BasePermission):
 
-    message = '''
-        Операция доступна только для администратора, автора или модератора!
-    '''
+    message = (
+        'Операция доступна только для администратора, '
+        'автора или модератора!'
+    )
 
     def has_object_permission(self, request, view, obj):
         return bool(
@@ -24,8 +25,8 @@ class IsAdminOrModeratorOrAuthorOrReadOnly(permissions.BasePermission):
             or (
                 not request.user.is_anonymous
                 and (
-                    request.user.role == 'admin'
-                    or request.user.role == 'moderator'
+                    request.user.is_admin
+                    or request.user.is_moderator
                     or obj.author == request.user
                 )
             )
