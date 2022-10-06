@@ -169,7 +169,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = self.get_title()
         if Review.objects.filter(
             author=self.request.user, title=title
-        ).count():
+        ).exists():
             raise serializers.ValidationError(
                 'Для одного произведения можно оставить только один отзыв!'
             )
@@ -192,10 +192,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         review = self.get_review()
         return review.comments.all()
-
-    def get_review(self):
-        review_id = self.kwargs['review_id']
-        return get_object_or_404(Review, id=review_id)
 
     def perform_create(self, serializer):
         review = self.get_review()
