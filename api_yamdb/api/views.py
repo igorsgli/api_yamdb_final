@@ -4,7 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, permissions, serializers,
-                            status, viewsets)
+                            status, viewsets, mixins)
 from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
@@ -92,7 +92,14 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class AbstractsViewSet(mixins.CreateModelMixin,
+                       mixins.ListModelMixin,
+                       mixins.DestroyModelMixin,
+                       viewsets.GenericViewSet,):
+    pass
+
+
+class CategoryViewSet(AbstractsViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [GeneralPermission]
@@ -107,7 +114,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(AbstractsViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [GeneralPermission]
@@ -143,7 +150,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsAdminOrModeratorOrAuthorOrReadOnly
     ]
     pagination_class = LimitOffsetPagination
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_title(self):
         title_id = self.kwargs['title_id']
@@ -155,13 +161,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = self.get_title()
-        if Review.objects.filter(
-            author=self.request.user, title=title
-        ).count():
-            raise serializers.ValidationError(
-                'Для одного произведения можно оставить только один отзыв!'
-            )
-
         serializer.save(author=self.request.user, title=title)
 
 
@@ -180,10 +179,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         review = self.get_review()
         return review.comments.all()
-
-    def get_review(self):
-        review_id = self.kwargs['review_id']
-        return get_object_or_404(Review, id=review_id)
 
     def perform_create(self, serializer):
         review = self.get_review()

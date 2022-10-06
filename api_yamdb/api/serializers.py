@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from requests import request
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, UserToken
 
@@ -145,6 +146,20 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+
+    def create(self, validated_data):
+        if Review.objects.filter(
+            author=validated_data['author'], title=validated_data['title']
+        ).exists():
+            raise serializers.ValidationError(
+                'Для одного произведения можно оставить только один отзыв!'
+            )
+
+        review = Review.objects.create(
+            **validated_data,
+        )
+
+        return review
 
 
 class CommetSerializer(serializers.ModelSerializer):
