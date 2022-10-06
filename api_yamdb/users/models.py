@@ -3,14 +3,19 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
-CHOICES = (
-    ('user', 'аутентифицированный пользователь'),
-    ('moderator', 'модератор'),
-    ('admin', 'администратор'),
-)
-
 
 class CustomUser(AbstractUser):
+
+    USER: str = 'user'
+    MODERATOR: str = 'moderator'
+    ADMIN: str = 'admin'
+
+    CHOICES = (
+        (USER, 'аутентифицированный пользователь'),
+        (MODERATOR, 'модератор'),
+        (ADMIN, 'администратор'),
+    )
+
     password = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -27,17 +32,18 @@ class CustomUser(AbstractUser):
     )
     confirmation_code = models.CharField(max_length=555, blank=True)
 
+
     class Meta:
         verbose_name = 'Пользователь'
 
     @property
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == CustomUser.ADMIN
 
     @property
     def is_user(self):
-        return self.role == 'user'
+        return self.role == CustomUser.USER
 
     @property
     def is_moderator(self):
-        return self.role == 'moderator'
+        return self.role == CustomUser.MODERATOR
