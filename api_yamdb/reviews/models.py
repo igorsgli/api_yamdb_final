@@ -1,42 +1,21 @@
-from datetime import datetime
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
-
-CHOICES = (
-    ('user', 'аутентифицированный пользователь'),
-    ('moderator', 'модератор'),
-    ('admin', 'администратор'),
-)
-
-
-class CustomUser(AbstractUser):
-    password = models.CharField(max_length=100, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(
-        default=datetime.now(tz=timezone.utc), blank=True
-    )
-    bio = models.TextField(blank=True)
-    role = models.CharField(
-        max_length=15,
-        choices=CHOICES,
-        default='user'
-    )
-    confirmation_code = models.CharField(max_length=555, blank=True)
 
 
 User = get_user_model()
 
 
 class UserToken(models.Model):
-    token = models.CharField(max_length=500, blank=True)
+    token = models.CharField(
+        max_length=500, blank=True,
+        help_text = 'Токен генерируется автоматически.'
+    )
     username = models.CharField(max_length=150, blank=True)
     confirmation_code = models.CharField(max_length=555, blank=True)
 
+    class Meta:
+        verbose_name = 'Токены'
 
 class Category(models.Model):
     name = models.CharField(
@@ -129,7 +108,7 @@ class Review(models.Model):
         verbose_name='Произведение',
     )
     author = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='reviews',
         verbose_name='Автор',
@@ -154,7 +133,7 @@ class Comment(models.Model):
         help_text='Текст комментария'
     )
     author = models.ForeignKey(
-        CustomUser,
+        User,
         on_delete=models.CASCADE,
         related_name='comments',
         verbose_name='Автор',

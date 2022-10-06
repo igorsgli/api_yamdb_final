@@ -1,7 +1,3 @@
-import random
-import string
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -9,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, permissions, serializers,
                             status, viewsets, mixins)
+from rest_framework.decorators import action
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 from rest_framework.response import Response
@@ -24,12 +21,10 @@ from api.serializers import (CategorySerializer, CommetSerializer,
                              UserSerializer)
 from api.filters import ModelFilter
 
+from .utils import get_confirmation_code
+
+
 User = get_user_model()
-
-
-def get_confirmation_code(length):
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
 
 
 class SignupView(generics.GenericAPIView):
@@ -38,9 +33,7 @@ class SignupView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        confirmation_code = get_confirmation_code(
-            settings.CONFIRMATION_CODE_LENGTH
-        )
+        confirmation_code = get_confirmation_code()
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(confirmation_code=confirmation_code)
@@ -80,28 +73,23 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    def get_object(self):
-        if self.kwargs['username'] == 'me':
-            return self.request.user
-        return super().get_object()
-
-    def get_permissions(self):
-        if (
-            self.action in ('retrieve', 'partial_update', 'destroy')
-            and self.kwargs['username'] == 'me'
-        ):
-            return (permissions.IsAuthenticated(),)
-        return super().get_permissions()
-
-    def perform_update(self, serializer):
-        if self.request.user.role == 'user':
-            return serializer.save(role='user')
-        return super().perform_update(serializer)
-
-    def destroy(self, request, *args, **kwargs):
-        if self.kwargs['username'] == 'me':
+    @action(detail=False, methods=['get', 'patch', 'delete'], 
+            permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        user = self.request.user
+        if request.method == 'PATCH':
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                if self.request.user.is_user:
+                    serializer.save(role='user')
+                else:
+                    serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'DELETE':
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        return super().destroy(request, *args, **kwargs)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AbstractsViewSet(mixins.CreateModelMixin,
