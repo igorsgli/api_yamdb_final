@@ -8,7 +8,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (filters, generics, permissions, serializers,
-                            status, viewsets)
+                            status, viewsets, mixins)
 from rest_framework.pagination import (LimitOffsetPagination,
                                        PageNumberPagination)
 from rest_framework.response import Response
@@ -104,7 +104,14 @@ class UsersViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class AbstractsViewSet(mixins.CreateModelMixin,
+                       mixins.ListModelMixin,
+                       mixins.DestroyModelMixin,
+                       viewsets.GenericViewSet,):
+    pass
+
+
+class CategoryViewSet(AbstractsViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [GeneralPermission]
@@ -119,7 +126,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(AbstractsViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [GeneralPermission]
