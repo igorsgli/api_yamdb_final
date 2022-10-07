@@ -80,14 +80,19 @@ class UsersViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    @action(detail=False, methods=['get', 'patch', 'delete'],
+    @action(detail=False, methods=['get', 'patch'],
             permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
         user = self.request.user
+
+        if request.method == 'GET':
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         if request.method == 'PATCH':
-            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer = self.get_serializer(user, data=request.data, partial=True)
             if serializer.is_valid():
-                if self.request.user.is_user:
+                if user.is_user:
                     serializer.save(role='user')
                 else:
                     serializer.save()
@@ -96,10 +101,6 @@ class UsersViewSet(viewsets.ModelViewSet):
                 serializer.data,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if request.method == 'DELETE':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(AbstractsViewSet):
