@@ -44,7 +44,7 @@ python3 manage.py runserver
 
 Примеры запросов:
 
-1. Получаем список произведений
+1. Получение списка произведений
 
 ```
 GET /api/v1/titles/
@@ -77,15 +77,108 @@ GET /api/v1/titles/
 ]
 ```
 
-
-2. Создание публикации
-
-```
+2. Добавление произведения
 
 ```
+POST http://127.0.0.1:8000/api/v1/titles/
 
+{
+    "name": "string",
+    "year": 0,
+    "description": "string",
+    "genre": [
+        "string"
+    ],
+    "category": "string"
+}
 ```
 
+3. Получение списка отзывов
+
+```
+GET http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/
+
+[
+    {
+        "count": 0,
+        "next": "string",
+        "previous": "string",
+        "results": [
+            {
+                "id": 0,
+                "text": "string",
+                "author": "string",
+                "score": 1,
+                "pub_date": "2019-08-24T14:15:22Z"
+            }
+        ]
+    }
+]
+```
+
+4. Добавление отзыва
+
+```
+POST http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/
+
+{
+  "text": "string",
+  "score": 1
+}
+```
+
+5. Получение списка комментариев по отзыву
+
+```
+GET http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/comments/
+
+[
+  {
+    "count": 0,
+    "next": "string",
+    "previous": "string",
+    "results": [
+      {
+        "id": 0,
+        "text": "string",
+        "author": "string",
+        "pub_date": "2019-08-24T14:15:22Z"
+      }
+    ]
+  }
+]
+```
+
+6. Добавление комментария к отзыву
+
+```
+POST http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/comments/
+
+{
+    "text": "string"
+}
+```
+
+7. Регистрация нового пользователя
+
+```
+POST http://127.0.0.1:8000/api/v1/auth/signup/
+
+{
+  "email": "string",
+  "username": "string"
+}
+```
+
+8. Получение токена
+
+```
+POST http://127.0.0.1:8000/api/v1/auth/token/
+
+{
+  "username": "string",
+  "confirmation_code": "string"
+}
 ```
 
 Более подробнее можно ознакомиться в документации: /static/redoc.yaml

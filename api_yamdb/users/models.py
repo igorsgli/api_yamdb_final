@@ -1,6 +1,7 @@
 from datetime import datetime
-from django.db import models
+
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.utils import timezone
 
 
@@ -31,7 +32,6 @@ class CustomUser(AbstractUser):
         help_text='Выберите роль'
     )
     confirmation_code = models.CharField(max_length=555, blank=True)
-
 
     class Meta:
         verbose_name = 'Пользователь'

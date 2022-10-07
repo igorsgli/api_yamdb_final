@@ -1,16 +1,8 @@
-from wsgiref import validate
-import datetime
-from django.core.exceptions import ValidationError
-from wsgiref.validate import validator
-from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
-
-def no_future_year(value):
-    year = datetime.date.today().year
-    if value > year:
-        raise ValidationError('Введенный год не может быть больше текущего года')
+from .validators import no_future_year
 
 User = get_user_model()
 
@@ -61,7 +53,10 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200)
-    year = models.PositiveSmallIntegerField(help_text='Введите год', validators=[no_future_year])
+    year = models.PositiveSmallIntegerField(
+        help_text='Введите год',
+        validators=[no_future_year]
+    )
     description = models.CharField(
         max_length=200,
         blank=True,
