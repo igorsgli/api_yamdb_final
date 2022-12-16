@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -34,41 +35,54 @@ class AbstractsViewSet(mixins.CreateModelMixin,
 
 
 class SignupView(generics.GenericAPIView):
-
     serializer_class = SignupSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        confirmation_code = get_confirmation_code()
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(confirmation_code=confirmation_code)
-        user_data = serializer.data
-        user = User.objects.get(username=user_data['username'])
-        send_mail(
-            'subject: ',
-            'confirmation code: ' + user.confirmation_code,
-            'from.api.yamdb@example.com',
-            [user_data['email']],
-            fail_silently=False,
-        )
-
-        return Response(user_data, status=status.HTTP_200_OK)
+        try:
+            user, created = User.objects.get_or_create(
+                username=serializer.data['username'],
+                email=serializer.data['email']
+            )
+            user.confirmation_code = str(get_confirmation_code())
+            user.save()
+            send_mail(
+                'Confirmation code',
+                'confirmation code: ' + user.confirmation_code,
+                None,
+                [user.email],
+                fail_silently=False,
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except IntegrityError as error:
+            return Response(
+                {"username, email": str(error)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as error:
+            return Response(
+                {"username, email": str(error)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class TokenView(generics.GenericAPIView):
-
     serializer_class = TokenSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.get(username=request.data['username'])
-        token_value = RefreshToken.for_user(user).access_token
-        serializer.save(token=token_value)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user = get_object_or_404(User, username=serializer.data['username'])
+        if user.confirmation_code != serializer.data['confirmation_code']:
+            return Response(
+                {"confirmation_code": "Неверный код подверждения"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        token_value = str(RefreshToken.for_user(user).access_token)
+        return Response({"token": token_value}, status=status.HTTP_200_OK)
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -82,25 +96,18 @@ class UsersViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get', 'patch'],
             permission_classes=[permissions.IsAuthenticated])
     def me(self, request):
-
         if request.method == 'GET':
             serializer = self.get_serializer(self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-
         if request.method == 'PATCH':
             serializer = self.get_serializer(
                 self.request.user,
                 data=request.data,
                 partial=True
             )
-            if serializer.is_valid():
-                serializer.save(role=self.request.user.role, partial=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-            return Response(
-                serializer.data,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=self.request.user.role, partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(AbstractsViewSet):

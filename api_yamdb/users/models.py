@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
+
+from api.utils import get_confirmation_code
 
 
 class CustomUser(AbstractUser):
@@ -17,32 +16,26 @@ class CustomUser(AbstractUser):
         (ADMIN, 'администратор'),
     )
 
-    password = models.CharField(max_length=100, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    date_joined = models.DateTimeField(
-        default=datetime.now(tz=timezone.utc), blank=True
-    )
+    email = models.EmailField(unique=True)
     bio = models.TextField(blank=True, help_text='Заполните биографию')
     role = models.CharField(
-        max_length=15,
+        max_length=max([len(item[0]) for item in CHOICES]),
         choices=CHOICES,
         default='user',
         help_text='Выберите роль'
     )
-    confirmation_code = models.CharField(max_length=555, blank=True)
+    confirmation_code = models.CharField(max_length=len(str(get_confirmation_code())), blank=True)
 
     class Meta:
         verbose_name = 'Пользователь'
 
     @property
     def is_admin(self):
-        return self.role == CustomUser.ADMIN
-
-    @property
-    def is_user(self):
-        return self.role == CustomUser.USER
+        return (
+            self.role == CustomUser.ADMIN
+            or self.is_staff 
+            or self.is_superuser
+        )
 
     @property
     def is_moderator(self):

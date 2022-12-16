@@ -120,7 +120,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=200),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
@@ -128,3 +128,10 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+DEFAULT_FROM_EMAIL = 'from.api.yamdb@example.com'
+
+LENGTH_USERNAME = 150
+LENGTH_EMAIL = 254
+LENGTH_FIRST_NAME = 150
+LENGTH_LAST_NAME = 150
+USERNAME_PATTERN = "^[\w.@+-]+\Z"

@@ -7,18 +7,6 @@ from .validators import no_future_year
 User = get_user_model()
 
 
-class UserToken(models.Model):
-    token = models.CharField(
-        max_length=500, blank=True,
-        help_text='Токен генерируется автоматически.'
-    )
-    username = models.CharField(max_length=150, blank=True)
-    confirmation_code = models.CharField(max_length=555, blank=True)
-
-    class Meta:
-        verbose_name = 'Токены'
-
-
 class Category(models.Model):
     name = models.CharField(
         max_length=200,
