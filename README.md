@@ -6,10 +6,6 @@
 git clone https://github.com/igorsgli/api_yamdb_final.git
 ```
 
-```
-cd yatube_api
-```
-
 Cоздать и активировать виртуальное окружение:
 
 ```

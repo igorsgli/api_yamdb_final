@@ -24,7 +24,10 @@ class CustomUser(AbstractUser):
         default='user',
         help_text='Выберите роль'
     )
-    confirmation_code = models.CharField(max_length=len(str(get_confirmation_code())), blank=True)
+    confirmation_code = models.CharField(
+        max_length=len(str(get_confirmation_code())),
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'Пользователь'
