@@ -6,6 +6,10 @@
 git clone https://github.com/igorsgli/api_yamdb_final.git
 ```
 
+```
+cd api_yamdb_final
+```
+
 Cоздать и активировать виртуальное окружение:
 
 ```
