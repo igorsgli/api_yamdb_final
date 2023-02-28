@@ -108,6 +108,10 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save(role=self.request.user.role, partial=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
 
 class CategoryViewSet(AbstractsViewSet):
